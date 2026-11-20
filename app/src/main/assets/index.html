@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Which Archetype Are You?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: playful, warm, confident — a party game you pass round the pub table
+   IDEA: a deck of collectible character cards; the result is the card you draw
+   PICTURE: twelve original round emblems, one per archetype, revealed big at the end
+   COLOUR and TYPE: warm white / deep night ground, coral accent, each card its own colour; Fredoka + Nunito (rounded)
+   LAYOUT: one calm centred column, card-sized; stacks naturally on a phone */
+:root{color-scheme:light dark;--bg:light-dark(#fffaf3,#16141f);--ink:light-dark(#1c1a2e,#f6f1ea);--soft:light-dark(#6b6779,#a9a3b8);--card:light-dark(#ffffff,#221f2e);--line:light-dark(#efe6d8,#2f2b3d);--acc:#ff5a4e}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Nunito,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Fredoka,Nunito,sans-serif;font-weight:600;line-height:1.08;text-wrap:balance;margin:0}
+.wrap{max-width:640px;margin:0 auto;padding:clamp(20px,4vw,48px) max(5vw,16px) 48px}
+.screen{display:none}.screen.on{display:block;animation:in .45s ease}
+@keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+button{font:inherit;cursor:pointer;border:0;color:inherit}
+button:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+.btn{background:var(--acc);color:#fff;font-family:Fredoka,sans-serif;font-weight:600;font-size:19px;padding:15px 34px;border-radius:999px;min-height:52px;box-shadow:0 6px 0 #c9372d;transition:transform .12s,box-shadow .12s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #c9372d}
+.ghost{background:transparent;border:2px solid var(--line);padding:12px 24px;border-radius:999px;font-weight:800;min-height:48px}
+/* intro */
+.ring{position:relative;width:min(100%,420px);aspect-ratio:1;margin:0 auto 8px}
+.ring .orb{position:absolute;width:22%;aspect-ratio:1;transform:translate(-50%,-50%);filter:drop-shadow(0 6px 10px rgba(0,0,0,.15))}
+.ring .spin{position:absolute;inset:0;animation:spin 80s linear infinite}
+.ring .spin .orb{animation:spin 80s linear infinite reverse}
+@keyframes spin{to{rotate:360deg}}
+.ring .mid{position:absolute;inset:27%;display:grid;place-content:center;text-align:center}
+.mid b{font-family:Fredoka;font-size:clamp(48px,12vw,76px);line-height:1;color:var(--acc)}
+.mid span{font-weight:800;color:var(--soft);font-size:14px}
+.intro{text-align:center}
+.intro h1{font-size:clamp(34px,7vw,50px);margin:6px 0 10px}
+.intro p{color:var(--soft);margin:0 auto 26px;max-width:30em}
+.meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px;color:var(--soft);font-size:14px;font-weight:700}
+.meta span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px}
+/* question */
+.top{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+.bar{flex:1;height:12px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .35s ease}
+.count{font-weight:800;color:var(--soft);font-size:14px;white-space:nowrap}
+.back{background:var(--card);border:1px solid var(--line);width:44px;height:44px;border-radius:50%;font-size:20px;line-height:1}
+.back:disabled{opacity:.3;cursor:default}
+.q h2{font-size:clamp(26px,5.5vw,36px);margin-bottom:24px}
+.opts{display:grid;gap:12px}
+.opt{display:flex;gap:14px;align-items:center;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:22px;padding:14px 18px;min-height:64px;font-weight:700;transition:border-color .15s,transform .15s}
+.opt:hover{border-color:var(--acc);transform:translateX(3px)}
+.opt.picked{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,var(--card))}
+.opt .k{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-content:center;background:var(--line);font-family:Fredoka;font-size:16px}
+.opt small{display:block;font-weight:500;color:var(--soft);font-size:14px;line-height:1.35}
+/* result */
+.reveal{text-align:center}
+.kicker{font-weight:800;color:var(--soft);margin-bottom:12px}
+.hero{border-radius:32px;padding:28px 22px 30px;color:#fff;position:relative;overflow:hidden;box-shadow:0 20px 40px -18px rgba(0,0,0,.45);animation:flip .9s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes flip{0%{transform:perspective(900px) rotateY(90deg) scale(.8);opacity:0}100%{transform:none;opacity:1}}
+.hero svg{width:min(78%,300px);height:auto;display:block;margin:0 auto 6px;filter:drop-shadow(0 12px 18px rgba(0,0,0,.25))}
+.hero h2{font-size:clamp(44px,11vw,64px);font-weight:700;letter-spacing:.01em}
+.hero .tag{font-weight:800;font-size:18px;opacity:.92;margin-top:6px}
+.body{text-align:left;margin-top:24px;display:grid;gap:18px}
+.body p{margin:0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:18px 20px}
+.panel h3{font-size:20px;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips span{border-radius:999px;padding:6px 14px;font-weight:800;font-size:15px}
+.runners{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.run{display:flex;gap:10px;align-items:center}
+.run svg{width:56px;height:56px;flex:none}
+.run b{font-family:Fredoka;font-size:18px;display:block}.run small{color:var(--soft);font-weight:700}
+.rows{display:grid;gap:7px}
+.row{display:grid;grid-template-columns:7.2em minmax(0,1fr) 3em;gap:10px;align-items:center;font-size:14px;font-weight:800}
+.row .t{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.row .t i{display:block;height:100%;border-radius:99px;width:0;transition:width 1s ease .3s}
+.row .p{text-align:right;color:var(--soft)}
+.acts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+.note{text-align:center;color:var(--soft);font-size:13px;margin-top:22px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section class="screen on intro" id="s-intro">
+  <div class="ring" id="ring" aria-hidden="true"></div>
+  <h1>Which archetype are you?</h1>
+  <p>Twelve classic characters live in all of us. Answer honestly and find out which one leads the way in you.</p>
+  <button class="btn" id="start">Start the quiz</button>
+  <div class="meta"><span>20 questions</span><span>About 3 minutes</span><span>12 archetypes</span></div>
+</section>
+
+<section class="screen q" id="s-q">
+  <div class="top">
+    <button class="back" id="back" aria-label="Previous question">‹</button>
+    <div class="bar"><i id="prog"></i></div>
+    <span class="count" id="count"></span>
+  </div>
+  <h2 id="qtext"></h2>
+  <div class="opts" id="opts"></div>
+</section>
+
+<section class="screen reveal" id="s-res">
+  <div class="kicker">Your archetype is</div>
+  <div class="hero" id="hero"></div>
+  <div class="body" id="resbody"></div>
+  <div class="acts">
+    <button class="btn" id="share">Share my result</button>
+    <button class="ghost" id="again">Take it again</button>
+  </div>
+  <p class="note" id="copied" aria-live="polite"></p>
+</section>
+
+<p class="note">Just for fun, loosely inspired by Jungian archetypes. Not a validated personality test.</p>
+</div>
+
+<script>
+{
+const A={
+P:{n:'Provider',c:'#e9822f',d:'#b85a14',t:'The one everyone leans on',x:'You measure a good life by how well your people are looked after. You show love through doing: fixing, earning, sorting, turning up. When something needs handling, you are already handling it.',s:['Dependable','Hard-working','Practical','Loyal'],w:'You can carry too much alone and forget that you need looking after too.'},
+E:{n:'Emperor',c:'#d62839',d:'#951424',t:'Born to lead',x:'You see the big picture and you are comfortable owning it. People look to you when a decision needs making, and you would rather build the kingdom than live in someone else’s.',s:['Decisive','Ambitious','Commanding','Visionary'],w:'Control can tip into needing to control everything. Let others lead sometimes.'},
+S:{n:'Strategist',c:'#2b59c3',d:'#183a8c',t:'Three moves ahead',x:'You read situations like a board game. While others react, you are mapping options, spotting angles and quietly picking the play that wins.',s:['Analytical','Calm','Clever','Patient'],w:'Overthinking can stall you. Sometimes the good-enough move now beats the perfect move later.'},
+M:{n:'Mentor',c:'#22917f',d:'#12604f',t:'Lifts others higher',x:'Your best days are when someone else gets better because of you. You pass on what you know generously and you notice potential before people see it in themselves.',s:['Generous','Wise','Encouraging','Patient'],w:'Make sure you are still growing too, not only coaching from the sidelines.'},
+F:{n:'Fighter',c:'#f26419',d:'#b23f00',t:'Never backs down',x:'Challenges light you up. You meet problems head-on, train hard, and keep going after others quit. Setbacks are just the next round.',s:['Courageous','Driven','Resilient','Disciplined'],w:'Not every battle is worth fighting. Pick the ones that matter.'},
+R:{n:'Rebel',c:'#3a3546',d:'#1d1a26',t:'Lives on his own terms',x:'You question everything and bow to nothing just because it is tradition. Freedom matters more than approval, and you would rather break a bad rule than live under it.',s:['Independent','Bold','Original','Honest'],w:'Fighting the system can become a habit. Rebel for something, not just against it.'},
+G:{n:'Sage',c:'#6c4fd6',d:'#45309e',t:'Seeks the real answer',x:'You want to know how things truly work. You read, question and dig until you understand, and people trust you because you would rather be right than be quick.',s:['Knowledgeable','Thoughtful','Fair','Curious'],w:'Understanding is only half of it. Act on what you know.'},
+X:{n:'Explorer',c:'#1f8a70',d:'#0f5a48',t:'Always over the next hill',x:'Routine feels like a cage to you. You are happiest discovering new places, ideas and experiences, and you trust yourself to find the way.',s:['Adventurous','Free','Self-reliant','Open-minded'],w:'Running towards the new can mean running from commitment. Some roots are worth it.'},
+W:{n:'Magician',c:'#7b2cbf',d:'#4d1580',t:'Makes the impossible real',x:'You turn ideas into things. Where others see a problem, you see a system to build, a trick to pull off or a transformation waiting to happen.',s:['Inventive','Visionary','Resourceful','Transformative'],w:'Not every idea needs building at once. Finish the spell before starting the next.'},
+T:{n:'Protector',c:'#0077b6',d:'#004b78',t:'Stands between you and harm',x:'You are the wall people shelter behind. You notice threats early, you step in without being asked, and nobody gets left behind on your watch.',s:['Brave','Loyal','Watchful','Steady'],w:'You cannot guard everyone from everything. Trust people to stand on their own sometimes.'},
+L:{n:'Lover',c:'#e63972',d:'#a8174b',t:'Lives with his whole heart',x:'You feel deeply and love fully. Connection, beauty and passion are what make life worth living, and the people close to you feel truly seen.',s:['Passionate','Warm','Devoted','Charming'],w:'Do not lose yourself in other people. Your own needs count too.'},
+J:{n:'Jester',c:'#f2a900',d:'#a87400',t:'Life is better with laughter',x:'You lighten every room. Humour is your superpower, and you use it to connect, defuse tension and remind everyone not to take life too seriously.',s:['Funny','Quick-witted','Playful','Disarming'],w:'Jokes can become a shield. Let people see the serious side now and then.'}
+};
+const Q=[
+['You’ve got a completely free weekend. What do you actually do?',[['W','Build or tinker','A project, an app, a gadget'],['X','Go somewhere new','A road trip or a place you’ve never been'],['P','Sort the household','Jobs done, family squared away'],['J','Mates and banter','Pub, laughs, wind people up']]],
+['A serious problem kicks off at work. Your instinct?',[['E','Take command','Step up and own it'],['S','Work the angles','Map the options, pick the best play'],['T','Shield the team','Take the heat so they don’t'],['F','Get stuck in','Hands on, tackle it head-on']]],
+['What do people mostly come to you for?',[['M','Advice and guidance','Help me grow'],['G','Deep knowledge','You’ll know the real answer'],['J','A laugh','Lighten the mood'],['P','Getting it done','You’ll sort it']]],
+['You’re handed a rule you think is stupid. You…',[['R','Ignore it','My call, my way'],['S','Work round it','Find the clever loophole'],['E','Change it','Go to the top and get it rewritten'],['G','Find out why first','Understand it before judging it']]],
+['What drives you most?',[['X','Freedom','Nobody boxing me in'],['F','Winning','Beating the challenge'],['L','Connection','Passion and people'],['E','Legacy','Building something that lasts']]],
+['Which compliment would land best?',[['W','“You made it happen”','Turned an idea into something real'],['T','“You’ve got my back”','Safe when you’re around'],['M','“You taught me loads”','Made me better'],['L','“You make life great”','Warmth and good times']]],
+['In a film, which role are you?',[['G','The wise old hand','Seen it all, knows the score'],['R','The rogue outsider','Doesn’t play by their rules'],['L','The romantic lead','All heart'],['J','The comic relief','Steals every scene']]],
+['What’s money really for?',[['P','Family security','Look after the people at home'],['X','Experiences','Travel and adventure'],['E','Building bigger','Grow the empire'],['L','Enjoying now','Life’s for living']]],
+['Someone squares up to your mate. You…',[['F','Meet force with force','They picked the wrong night'],['J','Laugh it down','Defuse it with humour'],['S','Outthink them','Read it and play it smart'],['T','Step in between','Put yourself in front']]],
+['What do you want to be remembered for?',[['W','Things I built','Creations that outlive me'],['M','People I lifted','Those I helped grow'],['G','Truth I uncovered','How things really work'],['R','Living my way','On my own terms']]],
+['Pick a dream job title.',[['E','Founder and CEO','Running the show'],['W','Inventor','Making what doesn’t exist yet'],['M','Coach','Bringing out the best in others'],['T','First responder','First in when it goes wrong']]],
+['At a party, where are you?',[['J','Holding court','Telling the stories'],['G','Deep chat in the corner','One good conversation'],['L','With your favourite person','Nobody else matters tonight'],['T','Making sure everyone gets home','Somebody has to']]],
+['Which fear hits hardest?',[['P','Letting down people who rely on me','They count on me'],['E','Losing control','Of my life or my plans'],['X','Being stuck','Same place, same routine, forever'],['J','Being boring','Life without fun']]],
+['Your ideal Sunday morning?',[['F','Training','Gym, run or the bag'],['G','Reading or a documentary','Learning something'],['P','Big breakfast for everyone','Feeding the troops'],['X','Wandering somewhere new','No plan, just go']]],
+['In a team project you’re the one who…',[['S','Plans the moves','The roadmap is mine'],['F','Does the heavy lifting','Graft wins'],['J','Keeps morale up','Nobody sulks on my watch'],['R','Challenges groupthink','Somebody has to say it']]],
+['Pick a superpower.',[['S','See the future','Know every outcome'],['W','Transform anything','Turn this into that'],['X','Teleport anywhere','Gone in a blink'],['T','An unbreakable shield','Nothing gets through']]],
+['How do you show love?',[['P','Fixing and providing','Actions, not words'],['T','Keeping them safe','Always watching out'],['L','Words and romance','Saying it and showing it'],['M','Helping them grow','Backing their dreams']]],
+['Under pressure, your weak spot is…',[['R','Going it alone','I don’t need permission'],['S','Overthinking','Paralysis by analysis'],['F','Pushing too hard','Never knowing when to stop'],['P','Taking on too much','Saying yes to everything']]],
+['Your favourite kind of story?',[['F','The comeback fight','Underdog wins'],['L','A great romance','Love against the odds'],['R','A revolution','Tear down the old order'],['W','Hidden-world magic','Secrets and wonders']]],
+['Pick your motto.',[['M','Leave it better than you found it',''],['T','Nobody gets left behind',''],['R','Rules are suggestions',''],['G','Know thyself','']]]
+];
+const KEYS=Object.keys(A);
+const MAX={};KEYS.forEach(k=>MAX[k]=0);Q.forEach(q=>q[1].forEach(o=>MAX[o[0]]++));
+
+const star=(cx,cy,r,f)=>{let p='';for(let i=0;i<10;i++){const a=Math.PI/5*i-Math.PI/2,rr=i%2?r*.42:r;p+=(cx+Math.cos(a)*rr).toFixed(1)+','+(cy+Math.sin(a)*rr).toFixed(1)+' '}return `<polygon points="${p}" fill="${f}"/>`};
+const G={
+P:`<path d="M58 112 100 74 142 112V152H58Z" fill="#fff"/><path d="M48 116 100 66 152 116" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><path d="M100 140c-14-9-20-16-20-23a9 9 0 0 1 20-4 9 9 0 0 1 20 4c0 7-6 14-20 23z" fill="SHADE"/><rect x="124" y="70" width="10" height="22" rx="3" fill="#fff"/>`,
+E:`<path d="M54 140 48 82 78 106 100 62 122 106 152 82 146 140Z" fill="#fff" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><rect x="52" y="136" width="96" height="18" rx="8" fill="#fff"/><circle cx="100" cy="122" r="9" fill="SHADE"/><circle cx="72" cy="126" r="6" fill="SHADE"/><circle cx="128" cy="126" r="6" fill="SHADE"/><circle cx="48" cy="80" r="7" fill="#fff"/><circle cx="100" cy="58" r="8" fill="#fff"/><circle cx="152" cy="80" r="7" fill="#fff"/>`,
+S:`<rect x="66" y="140" width="68" height="16" rx="6" fill="#fff"/><path d="M76 140 82 102H118L124 140Z" fill="#fff"/><path d="M72 66H84V76H94V66H106V76H116V66H128V96H72Z" fill="#fff" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><rect x="92" y="112" width="16" height="16" rx="3" fill="SHADE"/>`,
+M:`<rect x="92" y="52" width="16" height="10" rx="4" fill="#fff"/><path d="M86 60a14 14 0 0 1 28 0" fill="none" stroke="#fff" stroke-width="6"/><rect x="70" y="66" width="60" height="12" rx="6" fill="#fff"/><rect x="74" y="78" width="52" height="64" rx="12" fill="#fff" opacity=".95"/><path d="M100 134c-12 0-16-10-12-20 3-8 10-11 12-22 4 8 16 16 12 30-2 8-6 12-12 12z" fill="#ffb703"/><path d="M100 132c-5 0-7-5-5-10 2-4 5-6 5-12 3 5 7 9 5 15-1 4-3 7-5 7z" fill="#fb5607"/><rect x="66" y="140" width="68" height="12" rx="6" fill="#fff"/>`,
+F:`<path d="M66 108c0-30 18-46 44-46 24 0 36 16 36 38 0 22-12 34-26 38H82c-10-6-16-16-16-30z" fill="#fff"/><path d="M62 112c-8-14 2-30 18-26 10 3 12 16 6 24" fill="#fff" stroke="SHADE" stroke-width="4"/><rect x="78" y="134" width="50" height="24" rx="8" fill="SHADE"/><path d="M84 146h38" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M104 74c12 0 22 8 24 20" fill="none" stroke="SHADE" stroke-width="5" stroke-linecap="round" opacity=".5"/>`,
+R:`<polygon points="114,46 68,112 98,112 84,160 136,88 106,88 124,46" fill="#ffd23f" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><g fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"><path d="M44 132a10 10 0 0 1 14-14l8 8"/><path d="M156 74a10 10 0 0 1-14 14l-8-8"/></g>`,
+G:`<path d="M100 92C86 82 66 80 50 84V146C66 142 86 144 100 152Z" fill="#fff"/><path d="M100 92C114 82 134 80 150 84V146C134 142 114 144 100 152Z" fill="#fff" opacity=".86"/><path d="M60 100c10-2 22 0 30 4M60 114c10-2 22 0 30 4M110 104c8-4 20-6 30-4M110 118c8-4 20-6 30-4" stroke="SHADE" stroke-width="3" stroke-linecap="round" opacity=".55"/>STAR`,
+X:`<circle cx="100" cy="106" r="48" fill="#fff"/><circle cx="100" cy="106" r="38" fill="none" stroke="SHADE" stroke-width="3" stroke-dasharray="3 7" opacity=".6"/><path d="M100 72 112 106 100 140 88 106Z" fill="SHADE"/><path d="M100 72 112 106H88Z" fill="#ff5a4e"/><circle cx="100" cy="106" r="5" fill="#fff"/><rect x="94" y="50" width="12" height="12" rx="5" fill="#fff"/>`,
+W:`<g transform="rotate(-38 100 110)"><rect x="94" y="78" width="12" height="90" rx="5" fill="#fff"/><rect x="94" y="78" width="12" height="18" rx="5" fill="#ffd23f"/></g>BIGSTAR<circle cx="60" cy="80" r="5" fill="#fff"/><circle cx="148" cy="128" r="4" fill="#fff"/>`,
+T:`<path d="M100 50 148 66V104C148 134 126 152 100 162 74 152 52 134 52 104V66Z" fill="#fff"/><path d="M100 64 134 76V104C134 126 118 140 100 148Z" fill="SHADE" opacity=".9"/><path d="M80 104l14 14 26-28" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`,
+L:`<path d="M100 156C62 130 46 110 46 88a26 26 0 0 1 54-12 26 26 0 0 1 54 12c0 22-16 42-54 68z" fill="#fff"/><path d="M76 82a12 12 0 0 1 14-6" fill="none" stroke="SHADE" stroke-width="6" stroke-linecap="round" opacity=".55"/>`,
+J:`<path d="M56 134C50 100 58 76 70 62 82 92 92 96 100 54 108 96 118 92 130 62 142 76 150 100 144 134Z" fill="#fff"/><path d="M100 54 108 96 118 92 130 62 142 76 150 100 144 134H100Z" fill="SHADE" opacity=".45"/><rect x="50" y="128" width="100" height="20" rx="9" fill="#fff"/><circle cx="70" cy="58" r="9" fill="#ffd23f"/><circle cx="100" cy="48" r="9" fill="#ffd23f"/><circle cx="130" cy="58" r="9" fill="#ffd23f"/><circle cx="76" cy="138" r="4" fill="SHADE"/><circle cx="100" cy="138" r="4" fill="SHADE"/><circle cx="124" cy="138" r="4" fill="SHADE"/>`
+};
+let uid=0;
+function art(k,simple){
+  const a=A[k],id='g'+(uid++);
+  let g=G[k].replaceAll('SHADE',a.d).replace('STAR',star(100,62,14,'#ffd23f')).replace('BIGSTAR',star(132,72,30,'#ffd23f'));
+  const sp=simple?'':[[38,52,7],[164,46,5],[160,160,6],[34,150,4]].map(s=>star(s[0],s[1],s[2],'rgba(255,255,255,.85)')).join('');
+  return `<svg viewBox="0 0 200 200" role="img" aria-label="${a.n} emblem"><defs><radialGradient id="${id}" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><circle cx="100" cy="100" r="96" fill="${a.c}"/><circle cx="100" cy="100" r="96" fill="url(#${id})"/><circle cx="100" cy="100" r="84" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="2" stroke-dasharray="2 8"/><ellipse cx="100" cy="166" rx="50" ry="8" fill="${a.d}" opacity=".55"/>${sp}${g}</svg>`;
+}
+
+const $=s=>document.querySelector(s);
+const ring=$('#ring');
+ring.innerHTML='<div class="spin">'+KEYS.map((k,i)=>{const ang=i/12*Math.PI*2-Math.PI/2;return `<div class="orb" style="left:${50+39*Math.cos(ang)}%;top:${50+39*Math.sin(ang)}%">${art(k,true)}</div>`}).join('')+'</div><div class="mid"><b>12</b><span>archetypes</span></div>';
+
+let ans=[],cur=0,order=[];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));window.scrollTo(0,0)}
+function start(){ans=[];cur=0;order=Q.map(q=>shuffle(q[1]));show('s-q');renderQ()}
+function renderQ(){
+  const q=Q[cur];
+  $('#qtext').textContent=q[0];
+  $('#count').textContent=(cur+1)+' / '+Q.length;
+  $('#prog').style.width=(cur/Q.length*100)+'%';
+  $('#back').disabled=cur===0;
+  $('#opts').innerHTML=order[cur].map((o,i)=>`<button class="opt${ans[cur]===o[0]?' picked':''}" data-k="${o[0]}"><span class="k">${'ABCD'[i]}</span><span>${o[1]}${o[2]?`<small>${o[2]}</small>`:''}</span></button>`).join('');
+  const s=$('#s-q');s.classList.remove('on');void s.offsetWidth;s.classList.add('on');
+}
+$('#opts').addEventListener('click',e=>{
+  const b=e.target.closest('.opt');if(!b)return;
+  ans[cur]=b.dataset.k;b.classList.add('picked');
+  setTimeout(()=>{if(cur<Q.length-1){cur++;renderQ()}else result()},220);
+});
+$('#back').addEventListener('click',()=>{if(cur>0){cur--;renderQ()}});
+$('#start').addEventListener('click',start);
+$('#again').addEventListener('click',start);
+
+let last='';
+function result(){
+  const sc={};KEYS.forEach(k=>sc[k]=0);ans.forEach(k=>sc[k]++);
+  const pct=k=>Math.round(sc[k]/MAX[k]*100);
+  const rank=KEYS.slice().sort((a,b)=>pct(b)-pct(a)||sc[b]-sc[a]);
+  const top=A[rank[0]];
+  last=rank[0];
+  $('#hero').style.background=`linear-gradient(160deg,${top.c},${top.d})`;
+  $('#hero').innerHTML=art(rank[0])+`<h2>The ${top.n}</h2><div class="tag">${top.t}</div>`;
+  $('#resbody').innerHTML=`
+    <p style="font-size:18px">${top.x}</p>
+    <div class="panel"><h3>Your strengths</h3><div class="chips">${top.s.map(s=>`<span style="background:color-mix(in srgb,${top.c} 16%,transparent);color:color-mix(in srgb,${top.c} 70%,var(--ink))">${s}</span>`).join('')}</div></div>
+    <div class="panel"><h3>Watch out for</h3><p>${top.w}</p></div>
+    <div class="panel"><h3>Also strong in you</h3><div class="runners">${rank.slice(1,3).map(k=>`<div class="run">${art(k,true)}<div><b>${A[k].n}</b><small>${pct(k)}% match</small></div></div>`).join('')}</div></div>
+    <div class="panel"><h3>Your full breakdown</h3><div class="rows">${rank.map(k=>`<div class="row"><span>${A[k].n}</span><span class="t"><i data-w="${pct(k)}" style="background:${A[k].c}"></i></span><span class="p">${pct(k)}%</span></div>`).join('')}</div></div>`;
+  $('#copied').textContent='';
+  show('s-res');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.row i').forEach(i=>i.style.width=i.dataset.w+'%')));
+}
+$('#share').addEventListener('click',async()=>{
+  const a=A[last];const txt=`I'm The ${a.n}: ${a.t}. Which archetype are you? Take the 20-question quiz.`;
+  if(window.Android){Android.share(txt);return}
+  try{await navigator.clipboard.writeText(txt);$('#copied').textContent='Copied. Paste it anywhere with the quiz link.'}
+  catch(e){$('#copied').textContent=txt}
+});
+}
+</script>
+</body>
+</html>
