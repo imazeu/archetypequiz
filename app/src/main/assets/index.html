@@ -44,6 +44,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .ring .mid{position:absolute;inset:28%;display:grid;place-content:center;text-align:center;border-radius:50%;background:radial-gradient(circle,rgba(255,200,87,.22),transparent 70%)}
 .mid b{font-family:Fredoka;font-weight:700;font-size:clamp(52px,13vw,80px);line-height:1;color:var(--gold);text-shadow:0 0 26px rgba(255,200,87,.7)}
 .mid span{font-weight:800;color:var(--soft);font-size:14px}
+.hall{margin:4px 0 22px;--glow:#ff7a59}
 .intro h1{font-size:clamp(34px,7vw,52px);margin:6px 0 10px;text-shadow:0 0 30px rgba(255,200,87,.35)}
 .intro p{color:var(--soft);margin:0 auto 26px;max-width:30em}
 .meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:24px;color:var(--soft);font-size:14px;font-weight:700}
@@ -98,8 +99,8 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 <div class="wrap">
 
 <section class="screen on intro" id="s-intro">
-  <div class="ring" id="ring" aria-hidden="true"></div>
-  <h1>Which archetype are you?</h1>
+  <div class="hero hall"><img src="img/H.jpg" alt="The 12 Archetypes: glowing shields lining a stone hall"></div>
+  <h1>Which one are you?</h1>
   <p>Twelve classic characters live in every man. Answer honestly and find out which one leads the way in you.</p>
   <button class="btn" id="start">Start the quiz</button>
   <div class="meta"><span>20 questions</span><span>About 3 minutes</span><span>12 archetypes</span></div>
@@ -173,16 +174,15 @@ const KEYS=Object.keys(A);
 
 const MAX={};KEYS.forEach(k=>MAX[k]=0);Q.forEach(q=>q[1].forEach(o=>MAX[o[0]]++));
 const $=s=>document.querySelector(s);
-const ORDER=['P','J','L','T','W','X','G','R','F','M','S','E'];
+const ORDER=['P','J','L','T','W','X','G','R','F','M','S','E'];const ALL=ORDER.concat('H');
 const bg=$('#bg');
-bg.innerHTML=ORDER.map(k=>`<img src="img/${k}.jpg" alt="" data-k="${k}" loading="eager">`).join('');
+bg.innerHTML=ALL.map(k=>`<img src="img/${k}.jpg" alt="" data-k="${k}" loading="eager">`).join('');
 const layers={};bg.querySelectorAll('img').forEach(i=>layers[i.dataset.k]=i);
 let shown='';
 function setBg(k){if(k===shown)return;if(layers[shown])layers[shown].classList.remove('on');layers[k].classList.add('on');shown=k}
 let slide=0,timer=null;
 function slideshow(on){clearInterval(timer);if(on){setBg(ORDER[slide%12]);timer=setInterval(()=>setBg(ORDER[++slide%12]),3800)}}
-$('#ring').innerHTML='<div class="spin">'+ORDER.map((k,i)=>{const ang=i/12*Math.PI*2-Math.PI/2;return `<div class="orb" style="--c:${A[k].c};left:${50+39*Math.cos(ang)}%;top:${50+39*Math.sin(ang)}%"><img src="img/${k}_t.jpg" alt="${A[k].n}"></div>`}).join('')+'</div><div class="mid"><b>12</b><span>archetypes</span></div>';
-slideshow(true);
+setBg('H');
 
 let ans=[],cur=0,order=[];
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
