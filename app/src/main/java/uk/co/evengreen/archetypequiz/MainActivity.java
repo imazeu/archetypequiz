@@ -14,7 +14,7 @@ public class MainActivity extends Activity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#fffaf3"));
+        web.setBackgroundColor(Color.parseColor("#0b0a12"));
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
