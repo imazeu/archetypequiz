@@ -91,6 +91,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .row .p{text-align:right;color:var(--soft)}
 .acts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px}
 .note{text-align:center;color:var(--soft);font-size:13px;margin-top:22px;opacity:.8}
+#cardbox{position:fixed;inset:0;z-index:5;background:rgba(5,4,10,.88);display:grid;place-items:center;padding:20px;overflow:auto}#cardbox[hidden]{display:none}#cardbox>div{max-width:440px;text-align:center}#cardbox img{width:100%;border-radius:20px;box-shadow:0 0 40px var(--glow)}#cardbox p{color:var(--soft);font-weight:700}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -126,6 +127,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
     <button class="ghost" id="again">Take it again</button>
   </div>
   <p class="note" id="copied" aria-live="polite"></p>
+  <div id="cardbox" hidden><div><img id="cardimg" alt="Your archetype result card"><p>Long-press or right-click the card to save it</p><button class="ghost" type="button">Close</button></div></div>
 </section>
 
 <p class="note">Just for fun, loosely inspired by Jungian archetypes. Not a validated personality test.</p>
@@ -227,12 +229,47 @@ function result(){
   show('s-res','res');
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.row i').forEach(i=>i.style.width=i.dataset.w+'%')));
 }
+const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src});
+async function makeCard(k){
+  const a=A[k];
+  try{await Promise.all([document.fonts.load('700 100px Fredoka'),document.fonts.load('800 30px Nunito'),document.fonts.load('500 30px Nunito')])}catch(e){}
+  const img=await loadImg(`img/${k}.jpg`);
+  const W=1080,c=document.createElement('canvas'),x=c.getContext('2d');
+  const wrap=(t,font,max)=>{x.font=font;const w=t.split(' '),L=[];let l='';w.forEach(s=>{const tt=l?l+' '+s:s;if(x.measureText(tt).width>max&&l){L.push(l);l=s}else l=tt});if(l)L.push(l);return L};
+  const BODY='500 33px Nunito, sans-serif',lines=wrap(a.x,BODY,900);
+  x.font='800 30px Nunito, sans-serif';
+  const chipW=a.s.map(s=>x.measureText(s).width+56);
+  const imgH=Math.round(W*img.height/img.width);
+  const yName=imgH+150,yBody=yName+150,yChips=yBody+lines.length*46+40,H=yChips+90+190;
+  c.width=W;c.height=H;
+  x.fillStyle='#0b0a12';x.fillRect(0,0,W,H);
+  let g=x.createRadialGradient(W/2,imgH+120,0,W/2,imgH+120,700);g.addColorStop(0,a.c+'55');g.addColorStop(1,'#0b0a1200');x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.drawImage(img,0,0,W,imgH);
+  g=x.createLinearGradient(0,imgH*.6,0,imgH);g.addColorStop(0,'rgba(11,10,18,0)');g.addColorStop(1,'rgba(11,10,18,1)');x.fillStyle=g;x.fillRect(0,0,W,imgH+2);
+  x.textAlign='center';x.textBaseline='alphabetic';
+  x.fillStyle='#c3b9cf';x.font='800 32px Nunito, sans-serif';x.fillText('My archetype is',W/2,imgH+40);
+  x.save();x.shadowColor=a.c;x.shadowBlur=45;x.fillStyle='#ffffff';x.font='700 104px Fredoka, Nunito, sans-serif';x.fillText('The '+a.n,W/2,yName);x.restore();
+  x.fillStyle='#ffc857';x.font='800 38px Nunito, sans-serif';x.fillText(a.t,W/2,yName+62);
+  x.fillStyle='#f6efe4';x.font=BODY;lines.forEach((l,i)=>x.fillText(l,W/2,yBody+i*46));
+  const gap=14,rows=[[]];let rw=0;chipW.forEach((w,i)=>{if(rw+w>940&&rows[rows.length-1].length){rows.push([]);rw=0}rows[rows.length-1].push(i);rw+=w+gap});
+  rows.forEach((r,ri)=>{const tot=r.reduce((s,i)=>s+chipW[i],0)+gap*(r.length-1);let cx=(W-tot)/2;const cy=yChips+ri*74;r.forEach(i=>{x.beginPath();x.roundRect(cx,cy,chipW[i],58,29);x.fillStyle=a.c+'2e';x.fill();x.lineWidth=3;x.strokeStyle=a.c;x.save();x.shadowColor=a.c;x.shadowBlur=14;x.stroke();x.restore();x.fillStyle='#fff';x.font='800 30px Nunito, sans-serif';x.fillText(a.s[i],cx+chipW[i]/2,cy+40);cx+=chipW[i]+gap})});
+  x.strokeStyle='rgba(255,255,255,.14)';x.lineWidth=2;x.beginPath();x.moveTo(140,H-150);x.lineTo(W-140,H-150);x.stroke();
+  x.fillStyle='#c3b9cf';x.font='700 30px Nunito, sans-serif';x.fillText('Which archetype are you? Take the 20-question quiz',W/2,H-95);
+  x.save();x.shadowColor='#ffc857';x.shadowBlur=20;x.fillStyle='#ffc857';x.font='700 40px Fredoka, Nunito, sans-serif';x.fillText('THE 12 ARCHETYPES',W/2,H-42);x.restore();
+  return c.toDataURL('image/png');
+}
 $('#share').addEventListener('click',async()=>{
   const a=A[last];const txt=`I'm The ${a.n}: ${a.t}. Which archetype are you? Take the 20-question quiz.`;
-  if(window.Android){Android.share(txt);return}
-  try{await navigator.clipboard.writeText(txt);$('#copied').textContent='Copied. Paste it anywhere with the quiz link.'}
-  catch(e){$('#copied').textContent=txt}
+  const b=$('#share');b.disabled=true;$('#copied').textContent='Making your card…';
+  try{
+    const url=await makeCard(last);
+    if(window.Android&&Android.shareImage){Android.shareImage(url.split(',')[1],txt);$('#copied').textContent=''}
+    else{$('#cardimg').src=url;$('#cardbox').hidden=false;$('#copied').textContent=''}
+  }catch(e){$('#copied').textContent=txt}
+  b.disabled=false;
 });
+$('#cardbox').addEventListener('click',e=>{if(e.target.id!=='cardimg')$('#cardbox').hidden=true});
+
 }
 </script>
 </body>
