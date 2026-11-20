@@ -1,5 +1,10 @@
 name: Build APK
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,3 +17,14 @@ jobs:
       - run: cp app/build/outputs/apk/release/app-release.apk ArchetypeQuiz.apk
       - uses: actions/upload-artifact@v4
         with: { name: ArchetypeQuiz, path: ArchetypeQuiz.apk }
+      - name: Publish to apk branch
+        run: |
+          mkdir out && cp ArchetypeQuiz.apk out/
+          cd out && git init -q -b apk && git add ArchetypeQuiz.apk
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -q -m "APK from ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" apk
+      - name: Publish release
+        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
+        run: |
+          gh release delete latest -y --cleanup-tag || true
+          gh release create latest ArchetypeQuiz.apk -t "Archetype Quiz (latest)" -n "Built from ${GITHUB_SHA::7}"
